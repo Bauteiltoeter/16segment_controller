@@ -1,0 +1,587 @@
+   1               		.file	"slavecommunicator.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               	.global	sc_init
+  13               	sc_init:
+  14               	.LFB1:
+  15               		.file 1 "src/slavecommunicator.c"
+   1:src/slavecommunicator.c **** #include "slavecommunicator.h"
+   2:src/slavecommunicator.c **** #include "uart.h"
+   3:src/slavecommunicator.c **** 
+   4:src/slavecommunicator.c **** uint8_t calc_checksum(uint8_t* data, uint8_t length);
+   5:src/slavecommunicator.c **** void sendDatatransfer(int id, datatypes mode, uint8_t* buffer, size_t length);
+   6:src/slavecommunicator.c **** void tickStatemachine(uint8_t byte);
+   7:src/slavecommunicator.c **** void tickSendStatemachine(void);
+   8:src/slavecommunicator.c **** 
+   9:src/slavecommunicator.c **** 
+  10:src/slavecommunicator.c **** void sc_init(void)
+  11:src/slavecommunicator.c **** {
+  16               		.loc 1 11 0
+  17               		.cfi_startproc
+  18               	/* prologue: function */
+  19               	/* frame size = 0 */
+  20               	/* stack size = 0 */
+  21               	.L__stack_usage = 0
+  12:src/slavecommunicator.c ****     uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
+  22               		.loc 1 12 0
+  23 0000 88E0      		ldi r24,lo8(8)
+  24 0002 90E0      		ldi r25,0
+  25 0004 0C94 0000 		jmp uart_init
+  26               	.LVL0:
+  27               		.cfi_endproc
+  28               	.LFE1:
+  30               	.global	sc_initID
+  32               	sc_initID:
+  33               	.LFB2:
+  13:src/slavecommunicator.c **** }
+  14:src/slavecommunicator.c **** 
+  15:src/slavecommunicator.c **** void sc_initID(void)
+  16:src/slavecommunicator.c **** {
+  34               		.loc 1 16 0
+  35               		.cfi_startproc
+  36               	/* prologue: function */
+  37               	/* frame size = 0 */
+  38               	/* stack size = 0 */
+  39               	.L__stack_usage = 0
+  17:src/slavecommunicator.c ****     uart_putc(0);
+  40               		.loc 1 17 0
+  41 0008 80E0      		ldi r24,0
+  42 000a 0E94 0000 		call uart_putc
+  43               	.LVL1:
+  18:src/slavecommunicator.c ****     uart_putc(0);
+  44               		.loc 1 18 0
+  45 000e 80E0      		ldi r24,0
+  46 0010 0C94 0000 		jmp uart_putc
+  47               	.LVL2:
+  48               		.cfi_endproc
+  49               	.LFE2:
+  51               	.global	sc_sendpackage
+  53               	sc_sendpackage:
+  54               	.LFB4:
+  19:src/slavecommunicator.c **** }
+  20:src/slavecommunicator.c **** 
+  21:src/slavecommunicator.c **** void sc_run(void)
+  22:src/slavecommunicator.c **** {
+  23:src/slavecommunicator.c ****     unsigned int c = uart_getc();
+  24:src/slavecommunicator.c ****     if (! ( c & UART_NO_DATA) )
+  25:src/slavecommunicator.c ****     {
+  26:src/slavecommunicator.c ****         tickStatemachine(c);
+  27:src/slavecommunicator.c ****     }
+  28:src/slavecommunicator.c ****     //tickStatemachine() with new byte
+  29:src/slavecommunicator.c **** 
+  30:src/slavecommunicator.c ****     uint8_t tmp[20];
+  31:src/slavecommunicator.c ****     tmp[0]='A';
+  32:src/slavecommunicator.c ****     tmp[1]='A';
+  33:src/slavecommunicator.c ****     tmp[2]='A';
+  34:src/slavecommunicator.c ****     tmp[3]='A';
+  35:src/slavecommunicator.c ****     tmp[4]='A';
+  36:src/slavecommunicator.c ****     tmp[5]='A';
+  37:src/slavecommunicator.c **** 
+  38:src/slavecommunicator.c ****     sendDatatransfer(0,character_update,tmp,20);
+  39:src/slavecommunicator.c **** }
+  40:src/slavecommunicator.c **** 
+  41:src/slavecommunicator.c **** 
+  42:src/slavecommunicator.c **** void sc_sendpackage(package_t *package)
+  43:src/slavecommunicator.c **** {
+  55               		.loc 1 43 0
+  56               		.cfi_startproc
+  57               	.LVL3:
+  58               	/* prologue: function */
+  59               	/* frame size = 0 */
+  60               	/* stack size = 0 */
+  61               	.L__stack_usage = 0
+  62 0014 0895      		ret
+  63               		.cfi_endproc
+  64               	.LFE4:
+  66               	.global	tickSendStatemachine
+  68               	tickSendStatemachine:
+  69               	.LFB5:
+  44:src/slavecommunicator.c **** 
+  45:src/slavecommunicator.c **** }
+  46:src/slavecommunicator.c **** 
+  47:src/slavecommunicator.c **** 
+  48:src/slavecommunicator.c **** //########################
+  49:src/slavecommunicator.c **** //Private functions
+  50:src/slavecommunicator.c **** //########################
+  51:src/slavecommunicator.c **** 
+  52:src/slavecommunicator.c **** void tickSendStatemachine(void)
+  53:src/slavecommunicator.c **** {
+  70               		.loc 1 53 0
+  71               		.cfi_startproc
+  72               	/* prologue: function */
+  73               	/* frame size = 0 */
+  74               	/* stack size = 0 */
+  75               	.L__stack_usage = 0
+  76 0016 0895      		ret
+  77               		.cfi_endproc
+  78               	.LFE5:
+  80               	.global	tickStatemachine
+  82               	tickStatemachine:
+  83               	.LFB6:
+  54:src/slavecommunicator.c **** 
+  55:src/slavecommunicator.c **** }
+  56:src/slavecommunicator.c **** 
+  57:src/slavecommunicator.c **** void tickStatemachine(uint8_t byte)
+  58:src/slavecommunicator.c **** {
+  84               		.loc 1 58 0
+  85               		.cfi_startproc
+  86               	.LVL4:
+  87               	/* prologue: function */
+  88               	/* frame size = 0 */
+  89               	/* stack size = 0 */
+  90               	.L__stack_usage = 0
+  59:src/slavecommunicator.c ****     static int state = 0; // 0: waiting
+  60:src/slavecommunicator.c ****     static uint8_t mode;
+  61:src/slavecommunicator.c ****     static int datacounter=0;
+  62:src/slavecommunicator.c ****     static uint8_t data[4];
+  63:src/slavecommunicator.c **** 
+  64:src/slavecommunicator.c ****     switch(state)
+  91               		.loc 1 64 0
+  92 0018 2091 0000 		lds r18,state.1748
+  93 001c 3091 0000 		lds r19,state.1748+1
+  94 0020 2115      		cp r18,__zero_reg__
+  95 0022 3105      		cpc r19,__zero_reg__
+  96 0024 01F0      		breq .L7
+  97 0026 2130      		cpi r18,1
+  98 0028 3105      		cpc r19,__zero_reg__
+  99 002a 01F0      		breq .L8
+ 100 002c 0895      		ret
+ 101               	.L7:
+  65:src/slavecommunicator.c ****     {
+  66:src/slavecommunicator.c ****     case 0:
+  67:src/slavecommunicator.c ****         mode=byte;
+ 102               		.loc 1 67 0
+ 103 002e 8093 0000 		sts mode.1749,r24
+  68:src/slavecommunicator.c ****         datacounter=0;
+ 104               		.loc 1 68 0
+ 105 0032 1092 0000 		sts datacounter.1750+1,__zero_reg__
+ 106 0036 1092 0000 		sts datacounter.1750,__zero_reg__
+  69:src/slavecommunicator.c ****         state=1;
+ 107               		.loc 1 69 0
+ 108 003a 81E0      		ldi r24,lo8(1)
+ 109 003c 90E0      		ldi r25,0
+ 110               	.LVL5:
+ 111 003e 9093 0000 		sts state.1748+1,r25
+ 112 0042 8093 0000 		sts state.1748,r24
+  70:src/slavecommunicator.c ****         break;
+ 113               		.loc 1 70 0
+ 114 0046 0895      		ret
+ 115               	.LVL6:
+ 116               	.L8:
+  71:src/slavecommunicator.c ****     case 1:
+  72:src/slavecommunicator.c ****         if(mode==0)
+ 117               		.loc 1 72 0
+ 118 0048 9091 0000 		lds r25,mode.1749
+ 119 004c 9111      		cpse r25,__zero_reg__
+ 120 004e 00C0      		rjmp .L9
+ 121               	.LVL7:
+ 122               	.L11:
+  73:src/slavecommunicator.c ****         {
+  74:src/slavecommunicator.c ****            // qDebug() << "Detecting answer to init, " << byte << " displays found";
+  75:src/slavecommunicator.c ****             state=0;
+ 123               		.loc 1 75 0
+ 124 0050 1092 0000 		sts state.1748+1,__zero_reg__
+ 125 0054 1092 0000 		sts state.1748,__zero_reg__
+ 126 0058 0895      		ret
+ 127               	.LVL8:
+ 128               	.L9:
+  76:src/slavecommunicator.c ****         }
+  77:src/slavecommunicator.c ****         else if(mode==1)
+ 129               		.loc 1 77 0
+ 130 005a 9130      		cpi r25,lo8(1)
+ 131 005c 01F4      		brne .L5
+ 132               	.LVL9:
+ 133               	.LBB4:
+ 134               	.LBB5:
+  78:src/slavecommunicator.c ****         {
+  79:src/slavecommunicator.c ****             data[datacounter]=byte;
+ 135               		.loc 1 79 0
+ 136 005e 2091 0000 		lds r18,datacounter.1750
+ 137 0062 3091 0000 		lds r19,datacounter.1750+1
+ 138 0066 F901      		movw r30,r18
+ 139 0068 E050      		subi r30,lo8(-(data.1751))
+ 140 006a F040      		sbci r31,hi8(-(data.1751))
+ 141 006c 8083      		st Z,r24
+  80:src/slavecommunicator.c ****             datacounter++;
+ 142               		.loc 1 80 0
+ 143 006e C901      		movw r24,r18
+ 144               	.LVL10:
+ 145 0070 0196      		adiw r24,1
+ 146 0072 9093 0000 		sts datacounter.1750+1,r25
+ 147 0076 8093 0000 		sts datacounter.1750,r24
+  81:src/slavecommunicator.c ****             if(datacounter>=3)
+ 148               		.loc 1 81 0
+ 149 007a 0397      		sbiw r24,3
+ 150 007c 04F4      		brge .L11
+ 151               	.LVL11:
+ 152               	.L5:
+ 153 007e 0895      		ret
+ 154               	.LBE5:
+ 155               	.LBE4:
+ 156               		.cfi_endproc
+ 157               	.LFE6:
+ 159               	.global	calc_checksum
+ 161               	calc_checksum:
+ 162               	.LFB7:
+  82:src/slavecommunicator.c ****             {
+  83:src/slavecommunicator.c ****                 state=0;
+  84:src/slavecommunicator.c ****                 if(data[2] == 0)
+  85:src/slavecommunicator.c ****                 {
+  86:src/slavecommunicator.c ****                     //qDebug() << "received ack for id" << data[0];
+  87:src/slavecommunicator.c ****                     //delete sendPackages[data[0]];
+  88:src/slavecommunicator.c ****                     //sendPackages[data[0]] = NULL;
+  89:src/slavecommunicator.c ****                 }
+  90:src/slavecommunicator.c ****                 else
+  91:src/slavecommunicator.c ****                 {
+  92:src/slavecommunicator.c ****                     //qDebug() << "Received Nack for id" << data[0];
+  93:src/slavecommunicator.c **** 
+  94:src/slavecommunicator.c ****                 }
+  95:src/slavecommunicator.c **** 
+  96:src/slavecommunicator.c ****                 //qDebug() << "Receiving answer: " << (int)data[0]<< (int)data[1]<< (int)data[2]<< 
+  97:src/slavecommunicator.c ****             }
+  98:src/slavecommunicator.c ****         }
+  99:src/slavecommunicator.c ****         break;
+ 100:src/slavecommunicator.c ****     }
+ 101:src/slavecommunicator.c **** }
+ 102:src/slavecommunicator.c **** 
+ 103:src/slavecommunicator.c **** uint8_t calc_checksum(uint8_t* data, uint8_t length)
+ 104:src/slavecommunicator.c **** {
+ 163               		.loc 1 104 0
+ 164               		.cfi_startproc
+ 165               	.LVL12:
+ 166               	/* prologue: function */
+ 167               	/* frame size = 0 */
+ 168               	/* stack size = 0 */
+ 169               	.L__stack_usage = 0
+ 170 0080 9C01      		movw r18,r24
+ 171               	.LVL13:
+ 172               	.LBB6:
+ 105:src/slavecommunicator.c ****     uint8_t temp=0;
+ 106:src/slavecommunicator.c ****     for(uint16_t i=0; i < length; i++)
+ 173               		.loc 1 106 0
+ 174 0082 FC01      		movw r30,r24
+ 175               	.LBE6:
+ 105:src/slavecommunicator.c ****     uint8_t temp=0;
+ 176               		.loc 1 105 0
+ 177 0084 80E0      		ldi r24,0
+ 178               	.LVL14:
+ 179               	.LBB7:
+ 180               		.loc 1 106 0
+ 181 0086 70E0      		ldi r23,0
+ 182               	.LVL15:
+ 183               	.L15:
+ 184 0088 AF01      		movw r20,r30
+ 185 008a 421B      		sub r20,r18
+ 186 008c 530B      		sbc r21,r19
+ 187               		.loc 1 106 0 is_stmt 0 discriminator 1
+ 188 008e 4617      		cp r20,r22
+ 189 0090 5707      		cpc r21,r23
+ 190 0092 00F4      		brsh .L17
+ 107:src/slavecommunicator.c ****     {
+ 108:src/slavecommunicator.c ****         temp^=data[i];
+ 191               		.loc 1 108 0 is_stmt 1 discriminator 3
+ 192 0094 9191      		ld r25,Z+
+ 193               	.LVL16:
+ 194 0096 8927      		eor r24,r25
+ 195               	.LVL17:
+ 196 0098 00C0      		rjmp .L15
+ 197               	.L17:
+ 198               	/* epilogue start */
+ 199               	.LBE7:
+ 109:src/slavecommunicator.c ****     }
+ 110:src/slavecommunicator.c ****     return temp;
+ 111:src/slavecommunicator.c **** }
+ 200               		.loc 1 111 0
+ 201 009a 0895      		ret
+ 202               		.cfi_endproc
+ 203               	.LFE7:
+ 205               	.global	sendDatatransfer
+ 207               	sendDatatransfer:
+ 208               	.LFB8:
+ 112:src/slavecommunicator.c **** 
+ 113:src/slavecommunicator.c **** void sendDatatransfer(int id, datatypes mode, uint8_t *buffer, size_t length)
+ 114:src/slavecommunicator.c **** {
+ 209               		.loc 1 114 0
+ 210               		.cfi_startproc
+ 211               	.LVL18:
+ 212 009c CF92      		push r12
+ 213               	.LCFI0:
+ 214               		.cfi_def_cfa_offset 3
+ 215               		.cfi_offset 12, -2
+ 216 009e DF92      		push r13
+ 217               	.LCFI1:
+ 218               		.cfi_def_cfa_offset 4
+ 219               		.cfi_offset 13, -3
+ 220 00a0 EF92      		push r14
+ 221               	.LCFI2:
+ 222               		.cfi_def_cfa_offset 5
+ 223               		.cfi_offset 14, -4
+ 224 00a2 FF92      		push r15
+ 225               	.LCFI3:
+ 226               		.cfi_def_cfa_offset 6
+ 227               		.cfi_offset 15, -5
+ 228 00a4 0F93      		push r16
+ 229               	.LCFI4:
+ 230               		.cfi_def_cfa_offset 7
+ 231               		.cfi_offset 16, -6
+ 232 00a6 1F93      		push r17
+ 233               	.LCFI5:
+ 234               		.cfi_def_cfa_offset 8
+ 235               		.cfi_offset 17, -7
+ 236 00a8 CF93      		push r28
+ 237               	.LCFI6:
+ 238               		.cfi_def_cfa_offset 9
+ 239               		.cfi_offset 28, -8
+ 240 00aa DF93      		push r29
+ 241               	.LCFI7:
+ 242               		.cfi_def_cfa_offset 10
+ 243               		.cfi_offset 29, -9
+ 244 00ac CDB7      		in r28,__SP_L__
+ 245 00ae DEB7      		in r29,__SP_H__
+ 246               	.LCFI8:
+ 247               		.cfi_def_cfa_register 28
+ 248 00b0 DA95      		dec r29
+ 249               	.LCFI9:
+ 250               		.cfi_def_cfa_offset 266
+ 251 00b2 0FB6      		in __tmp_reg__,__SREG__
+ 252 00b4 F894      		cli
+ 253 00b6 DEBF      		out __SP_H__,r29
+ 254 00b8 0FBE      		out __SREG__,__tmp_reg__
+ 255 00ba CDBF      		out __SP_L__,r28
+ 256               	/* prologue: function */
+ 257               	/* frame size = 256 */
+ 258               	/* stack size = 264 */
+ 259               	.L__stack_usage = 264
+ 260 00bc 962F      		mov r25,r22
+ 261 00be BA01      		movw r22,r20
+ 262               	.LVL19:
+ 263 00c0 8901      		movw r16,r18
+ 115:src/slavecommunicator.c ****     uint8_t data[256];
+ 116:src/slavecommunicator.c ****     data[0] = data_transmit;
+ 264               		.loc 1 116 0
+ 265 00c2 21E0      		ldi r18,lo8(1)
+ 266               	.LVL20:
+ 267 00c4 2983      		std Y+1,r18
+ 117:src/slavecommunicator.c ****     data[1] = id; //message id
+ 268               		.loc 1 117 0
+ 269 00c6 8A83      		std Y+2,r24
+ 118:src/slavecommunicator.c ****     data[2] = length+2; //length+modeword+checksum
+ 270               		.loc 1 118 0
+ 271 00c8 82E0      		ldi r24,lo8(2)
+ 272               	.LVL21:
+ 273 00ca 800F      		add r24,r16
+ 274 00cc 8B83      		std Y+3,r24
+ 119:src/slavecommunicator.c ****     data[3] = mode;
+ 275               		.loc 1 119 0
+ 276 00ce 9C83      		std Y+4,r25
+ 120:src/slavecommunicator.c ****     memcpy(data+4,buffer,length);
+ 277               		.loc 1 120 0
+ 278 00d0 A801      		movw r20,r16
+ 279               	.LVL22:
+ 280 00d2 CE01      		movw r24,r28
+ 281 00d4 0596      		adiw r24,5
+ 282 00d6 0E94 0000 		call memcpy
+ 283               	.LVL23:
+ 121:src/slavecommunicator.c ****     data[length+4]= calc_checksum(data+3,length+1); //checksum
+ 284               		.loc 1 121 0
+ 285 00da 61E0      		ldi r22,lo8(1)
+ 286 00dc 600F      		add r22,r16
+ 287 00de CE01      		movw r24,r28
+ 288 00e0 0496      		adiw r24,4
+ 289 00e2 0E94 0000 		call calc_checksum
+ 290               	.LVL24:
+ 291 00e6 E5E0      		ldi r30,lo8(5)
+ 292 00e8 F0E0      		ldi r31,0
+ 293 00ea EC0F      		add r30,r28
+ 294 00ec FD1F      		adc r31,r29
+ 295 00ee E00F      		add r30,r16
+ 296 00f0 F11F      		adc r31,r17
+ 297 00f2 8083      		st Z,r24
+ 298               	.LVL25:
+ 299 00f4 CE01      		movw r24,r28
+ 300 00f6 0196      		adiw r24,1
+ 301 00f8 6C01      		movw r12,r24
+ 302               	.LBB8:
+ 122:src/slavecommunicator.c **** 
+ 123:src/slavecommunicator.c ****     for(int i=0; i < length+5; i++)
+ 303               		.loc 1 123 0
+ 304 00fa 7C01      		movw r14,r24
+ 305 00fc 0B5F      		subi r16,-5
+ 306 00fe 1F4F      		sbci r17,-1
+ 307               	.LVL26:
+ 308               	.L19:
+ 309 0100 C701      		movw r24,r14
+ 310 0102 8C19      		sub r24,r12
+ 311 0104 9D09      		sbc r25,r13
+ 312               		.loc 1 123 0 is_stmt 0 discriminator 1
+ 313 0106 8017      		cp r24,r16
+ 314 0108 9107      		cpc r25,r17
+ 315 010a 00F4      		brsh .L21
+ 124:src/slavecommunicator.c ****         uart_putc(data[i]);
+ 316               		.loc 1 124 0 is_stmt 1 discriminator 3
+ 317 010c F701      		movw r30,r14
+ 318 010e 8191      		ld r24,Z+
+ 319 0110 7F01      		movw r14,r30
+ 320 0112 0E94 0000 		call uart_putc
+ 321               	.LVL27:
+ 322 0116 00C0      		rjmp .L19
+ 323               	.L21:
+ 324               	/* epilogue start */
+ 325               	.LBE8:
+ 125:src/slavecommunicator.c **** 
+ 126:src/slavecommunicator.c **** 
+ 127:src/slavecommunicator.c **** }
+ 326               		.loc 1 127 0
+ 327 0118 D395      		inc r29
+ 328 011a 0FB6      		in __tmp_reg__,__SREG__
+ 329 011c F894      		cli
+ 330 011e DEBF      		out __SP_H__,r29
+ 331 0120 0FBE      		out __SREG__,__tmp_reg__
+ 332 0122 CDBF      		out __SP_L__,r28
+ 333 0124 DF91      		pop r29
+ 334 0126 CF91      		pop r28
+ 335 0128 1F91      		pop r17
+ 336 012a 0F91      		pop r16
+ 337               	.LVL28:
+ 338 012c FF90      		pop r15
+ 339 012e EF90      		pop r14
+ 340 0130 DF90      		pop r13
+ 341 0132 CF90      		pop r12
+ 342 0134 0895      		ret
+ 343               		.cfi_endproc
+ 344               	.LFE8:
+ 346               	.global	sc_run
+ 348               	sc_run:
+ 349               	.LFB3:
+  22:src/slavecommunicator.c ****     unsigned int c = uart_getc();
+ 350               		.loc 1 22 0
+ 351               		.cfi_startproc
+ 352 0136 CF93      		push r28
+ 353               	.LCFI10:
+ 354               		.cfi_def_cfa_offset 3
+ 355               		.cfi_offset 28, -2
+ 356 0138 DF93      		push r29
+ 357               	.LCFI11:
+ 358               		.cfi_def_cfa_offset 4
+ 359               		.cfi_offset 29, -3
+ 360 013a CDB7      		in r28,__SP_L__
+ 361 013c DEB7      		in r29,__SP_H__
+ 362               	.LCFI12:
+ 363               		.cfi_def_cfa_register 28
+ 364 013e 6497      		sbiw r28,20
+ 365               	.LCFI13:
+ 366               		.cfi_def_cfa_offset 24
+ 367 0140 0FB6      		in __tmp_reg__,__SREG__
+ 368 0142 F894      		cli
+ 369 0144 DEBF      		out __SP_H__,r29
+ 370 0146 0FBE      		out __SREG__,__tmp_reg__
+ 371 0148 CDBF      		out __SP_L__,r28
+ 372               	/* prologue: function */
+ 373               	/* frame size = 20 */
+ 374               	/* stack size = 22 */
+ 375               	.L__stack_usage = 22
+  23:src/slavecommunicator.c ****     if (! ( c & UART_NO_DATA) )
+ 376               		.loc 1 23 0
+ 377 014a 0E94 0000 		call uart_getc
+ 378               	.LVL29:
+  24:src/slavecommunicator.c ****     {
+ 379               		.loc 1 24 0
+ 380 014e 90FF      		sbrs r25,0
+  26:src/slavecommunicator.c ****     }
+ 381               		.loc 1 26 0
+ 382 0150 0E94 0000 		call tickStatemachine
+ 383               	.LVL30:
+ 384               	.L23:
+  31:src/slavecommunicator.c ****     tmp[1]='A';
+ 385               		.loc 1 31 0
+ 386 0154 81E4      		ldi r24,lo8(65)
+ 387 0156 8983      		std Y+1,r24
+  32:src/slavecommunicator.c ****     tmp[2]='A';
+ 388               		.loc 1 32 0
+ 389 0158 8A83      		std Y+2,r24
+  33:src/slavecommunicator.c ****     tmp[3]='A';
+ 390               		.loc 1 33 0
+ 391 015a 8B83      		std Y+3,r24
+  34:src/slavecommunicator.c ****     tmp[4]='A';
+ 392               		.loc 1 34 0
+ 393 015c 8C83      		std Y+4,r24
+  35:src/slavecommunicator.c ****     tmp[5]='A';
+ 394               		.loc 1 35 0
+ 395 015e 8D83      		std Y+5,r24
+  36:src/slavecommunicator.c **** 
+ 396               		.loc 1 36 0
+ 397 0160 8E83      		std Y+6,r24
+  38:src/slavecommunicator.c **** }
+ 398               		.loc 1 38 0
+ 399 0162 24E1      		ldi r18,lo8(20)
+ 400 0164 30E0      		ldi r19,0
+ 401 0166 AE01      		movw r20,r28
+ 402 0168 4F5F      		subi r20,-1
+ 403 016a 5F4F      		sbci r21,-1
+ 404 016c 61E0      		ldi r22,lo8(1)
+ 405 016e 80E0      		ldi r24,0
+ 406 0170 90E0      		ldi r25,0
+ 407 0172 0E94 0000 		call sendDatatransfer
+ 408               	.LVL31:
+ 409               	/* epilogue start */
+  39:src/slavecommunicator.c **** 
+ 410               		.loc 1 39 0
+ 411 0176 6496      		adiw r28,20
+ 412 0178 0FB6      		in __tmp_reg__,__SREG__
+ 413 017a F894      		cli
+ 414 017c DEBF      		out __SP_H__,r29
+ 415 017e 0FBE      		out __SREG__,__tmp_reg__
+ 416 0180 CDBF      		out __SP_L__,r28
+ 417 0182 DF91      		pop r29
+ 418 0184 CF91      		pop r28
+ 419 0186 0895      		ret
+ 420               		.cfi_endproc
+ 421               	.LFE3:
+ 423               		.local	data.1751
+ 424               		.comm	data.1751,4,1
+ 425               		.local	datacounter.1750
+ 426               		.comm	datacounter.1750,2,1
+ 427               		.local	mode.1749
+ 428               		.comm	mode.1749,1,1
+ 429               		.local	state.1748
+ 430               		.comm	state.1748,2,1
+ 431               	.Letext0:
+ 432               		.file 2 "/usr/lib/avr/include/stdint.h"
+ 433               		.file 3 "src/slavecommunicator.h"
+ 434               		.file 4 "/usr/lib/gcc/avr/4.9.2/include/stddef.h"
+ 435               		.file 5 "src/uart.h"
+ 436               		.file 6 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 slavecommunicator.c
+     /tmp/cc2dPOY8.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cc2dPOY8.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cc2dPOY8.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cc2dPOY8.s:5      *ABS*:000000000000003b __RAMPZ__
+     /tmp/cc2dPOY8.s:6      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cc2dPOY8.s:7      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cc2dPOY8.s:13     .text:0000000000000000 sc_init
+     /tmp/cc2dPOY8.s:32     .text:0000000000000008 sc_initID
+     /tmp/cc2dPOY8.s:53     .text:0000000000000014 sc_sendpackage
+     /tmp/cc2dPOY8.s:68     .text:0000000000000016 tickSendStatemachine
+     /tmp/cc2dPOY8.s:82     .text:0000000000000018 tickStatemachine
+     /tmp/cc2dPOY8.s:428    .bss:0000000000000007 state.1748
+     /tmp/cc2dPOY8.s:426    .bss:0000000000000006 mode.1749
+     /tmp/cc2dPOY8.s:424    .bss:0000000000000004 datacounter.1750
+                             .bss:0000000000000000 data.1751
+     /tmp/cc2dPOY8.s:161    .text:0000000000000080 calc_checksum
+     /tmp/cc2dPOY8.s:207    .text:000000000000009c sendDatatransfer
+     /tmp/cc2dPOY8.s:348    .text:0000000000000136 sc_run
+
+UNDEFINED SYMBOLS
+uart_init
+uart_putc
+memcpy
+uart_getc
+__do_clear_bss

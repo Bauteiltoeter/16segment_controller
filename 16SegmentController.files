@@ -1,0 +1,7 @@
+src/main.c
+src/slavecommunicator.c
+src/slavecommunicator.h
+src/uart.c
+src/uart.h
+src/rs485_slave.c
+src/rs485_slave.h
