@@ -1,0 +1,3 @@
+[submodule "src/rs484_slave"]
+	path = src/rs484_slave
+	url = https://github.com/Bauteiltoeter/rs484_slave.git
