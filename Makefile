@@ -80,9 +80,9 @@ OBJDIR = .
 
 
 
-# List C source files here. (C dependencies are automatically generated.)
+# List C source files here. (C dependencies are automatically generated.)s
 #SRC = $(TARGET).c
-SRC = src/main.c src/uart.c src/slavecommunicator.c src/rs484_slave/rs485_slave.c
+SRC = src/main.c src/uart.c src/slavecommunicator.c src/rs484_slave/rs485_slave.c src/messagehandler.c
 
 # List C++ source files here. (C dependencies are automatically generated.)
 CPPSRC = 

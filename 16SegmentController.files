@@ -3,5 +3,8 @@ src/slavecommunicator.c
 src/slavecommunicator.h
 src/uart.c
 src/uart.h
-src/rs485_slave.c
-src/rs485_slave.h
+src/messagehandler.c
+src/messagehandler.h
+src/rs484_slave/rs485_slave.c
+src/rs484_slave/rs485_slave.h
+src/rs485_configuration.h
